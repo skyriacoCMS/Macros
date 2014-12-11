@@ -1,0 +1,63 @@
+void ROC_Curve(){
+  TFile *f0=new TFile("TESTSig.root");
+  TTree *s = f0->Get("s");
+  //TTree *b = f0->Get("b");
+  c1=new TCanvas();
+  int nROCBins=200;
+  s->Draw("newBDT>>Bins(200, -1.0, 1.0)");
+  //100 bins of signal and background in the same range
+  s->Draw("newBDT>>signal(200, -1.0, 1.0)", "Sig==1", "psame");
+  s->Draw("newBDT>>bkg(200, -1.0, 1.0)", "Sig==0", "psame");
+
+  double sigEff[201];
+  double bkgRej[201];
+  char ss[1024];
+	 for (unsigned int ibin= 1; ibin<201 ; ibin++){
+		 float densig=signal->Integral();
+		 float denbkg=bkg->Integral();
+		 float sig=signal->Integral(ibin,nROCBins);
+		 float bk=bkg->Integral(ibin,nROCBins);
+		 float eff =(densig>0)?(sig/densig):0;
+		 float rej=(denbkg>0)?(1-(bk/denbkg)):0;
+		 sigEff[ibin-1]=eff;
+		 bkgRej[ibin-1]=rej;
+		 cout<<"sigEff "<<eff<<" rejection "<<rej<<endl;
+		 cout<<"BDT "<<Bins->GetBinCenter(ibin)<<endl;
+	 }
+	TCanvas *c12 =new TCanvas("c12"," ROC PF Isolation ",10,430,900,700);	
+	c12->SetGrid();
+	TGraph *ROC_Curve1 = new TGraph(201,bkgRej,sigEff);
+	ROC_Curve1->SetMarkerStyle(24);
+	ROC_Curve1->GetXaxis()->SetTitle("Bkg Rejection");
+	ROC_Curve1->GetYaxis()->SetTitle("Sig Efficiency");
+	ROC_Curve1->Draw("ACP");
+	c12->Update();
+	c1->cd();
+	s->Draw("oldBDT>>oBins(200, -1.0, 1.0)");
+	//100 bins of signal and background in the same range
+	s->Draw("oldBDT>>osignal(200, -1.0, 1.0)", "Sig==1", "psame");
+	s->Draw("oldBDT>>obkg(200, -1.0, 1.0)", "Sig==0", "psame");
+	double osigEff[201];
+	double obkgRej[201];
+	char ss[1024];
+	for (unsigned int ibin= 1; ibin<201 ; ibin++){
+		float densig=osignal->Integral();
+		float denbkg=obkg->Integral();
+		float sig=osignal->Integral(ibin,nROCBins);
+		float bk=obkg->Integral(ibin,nROCBins);
+		float eff =(densig>0)?(sig/densig):0;
+		float rej=(denbkg>0)?(1-(bk/denbkg)):0;
+		osigEff[ibin-1]=eff;
+		obkgRej[ibin-1]=rej;
+		cout<<"sigEff "<<eff<<" rejection "<<rej<<endl;
+		cout<<"BDT "<<Bins->GetBinCenter(ibin)<<endl;
+	}
+	c12->cd();
+	TGraph *ROC_Curve2 = new TGraph(80,obkgRej,osigEff);
+	ROC_Curve2->SetMarkerStyle(20);
+	ROC_Curve2->GetXaxis()->SetTitle("Bkg Rejection");
+	ROC_Curve2->GetYaxis()->SetTitle("Sig Efficiency");
+	ROC_Curve2->Draw("PSame");
+	
+	
+}
